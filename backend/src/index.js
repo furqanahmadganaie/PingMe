@@ -15,10 +15,10 @@ import { env } from "./config/env.js";
 const PORT = env.port;
 
 
-app.use(express.json({limit:"10mb"})); //middleware  to ectrach the daata 
+app.use(express.json({limit:"10mb"})); 
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-app.use(cookieParser()); //allows to parese the cookie
-//CqCFjIbMLu0g9XdW
+app.use(cookieParser()); 
+
 app.use(
   cors({
     origin: env.clientUrl,

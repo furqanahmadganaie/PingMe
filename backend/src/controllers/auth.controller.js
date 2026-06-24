@@ -6,7 +6,7 @@ import cloudinary from "../lib/cloudinary.js";
 import { io } from "../lib/socket.js";
 
 export const signup = async (req, res) => {
-  const { fullName, email, password } = req.body;// fetch user datatfrom fronend 
+  const { fullName, email, password } = req.body;// fetch user datatfrom 
   try {
     if (!fullName || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });

@@ -80,7 +80,9 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
+
       // Upload base64 image to cloudinary
+
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }
@@ -94,7 +96,7 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
     
-    // sent mesg to user  i realtime 
+    // sent msg to user  in realtime 
     // Every tab/device for this user joins a room named with their user id.
     io.to(String(receiverId)).emit("newMessage", newMessage);
 
