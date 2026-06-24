@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
+import { env } from "../config/env.js";
 // middle for upadteing the profile we need to have authorixwed user
 export const protectRoute = async (req, res, next) => {
   try {
@@ -9,7 +10,7 @@ export const protectRoute = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized - No Token Provided" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // decore the token 
+    const decoded = jwt.verify(token, env.jwtSecret); // decore the token 
 
     if (!decoded) {
       return res.status(401).json({ message: "Unauthorized - Invalid Token" });

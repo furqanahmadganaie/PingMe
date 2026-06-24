@@ -1,13 +1,16 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
+import { env } from "../config/env.js";
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [process.env.CLIENT_URL],
+    origin: env.clientUrl,
     credentials: true,
   },
 });
@@ -17,13 +20,37 @@ const userSockets = new Map();
 
 const getOnlineUserIds = () => [...userSockets.keys()];
 
-io.on("connection", (socket) => {
-  const userId = String(socket.handshake.query.userId || "");
+const getCookie = (cookieHeader, name) => {
+  if (!cookieHeader) return null;
 
-  if (!userId) {
-    socket.disconnect(true);
-    return;
+  for (const item of cookieHeader.split(";")) {
+    const [cookieName, ...valueParts] = item.trim().split("=");
+    if (cookieName === name) {
+      return decodeURIComponent(valueParts.join("="));
+    }
   }
+
+  return null;
+};
+
+io.use(async (socket, next) => {
+  try {
+    const token = getCookie(socket.request.headers.cookie, "jwt");
+    if (!token) return next(new Error("Unauthorized"));
+
+    const decoded = jwt.verify(token, env.jwtSecret);
+    const userExists = await User.exists({ _id: decoded.userId });
+    if (!userExists) return next(new Error("Unauthorized"));
+
+    socket.data.userId = String(decoded.userId);
+    next();
+  } catch {
+    next(new Error("Unauthorized"));
+  }
+});
+
+io.on("connection", (socket) => {
+  const userId = socket.data.userId;
 
   console.log(`User ${userId} connected with socket ${socket.id}`);
 

@@ -2,7 +2,9 @@ import {create} from 'zustand';
 import { axiosInstance } from '../lib/axios.js';
 import toast from 'react-hot-toast';
 import  {io} from 'socket.io-client';
-const BASE_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:4000";
+const BASE_URL =
+  import.meta.env.MODE === "development"? "http://localhost:4000": "";
+    
 const getErrorMessage = (error, fallback) => error?.response?.data?.message || fallback;
 export const useAuthStore=create((set,get)=> ({
  authUser: null,
@@ -96,9 +98,6 @@ connectSocket: () => {
     const socket = io(BASE_URL, {
       withCredentials: true,
       transports: ["websocket", "polling"],
-      query: {
-        userId: authUser._id,
-      },
     });
 
     set({ socket: socket });

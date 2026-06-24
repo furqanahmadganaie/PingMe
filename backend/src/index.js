@@ -4,18 +4,15 @@ dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 
 import express from 'express';
-import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import authRoutes from './routes/auth.route.js';
 import messageRoutes from './routes/message.route.js'
 import { connectDB } from './lib/db.js';
 import { app,server} from "./lib/socket.js";
+import { env } from "./config/env.js";
 
-dotenv.config({ quiet: true });
-
-
-const PORT = process.env.PORT || 4000;
+const PORT = env.port;
 
 
 app.use(express.json({limit:"10mb"})); //middleware  to ectrach the daata 
@@ -24,7 +21,7 @@ app.use(cookieParser()); //allows to parese the cookie
 //CqCFjIbMLu0g9XdW
 app.use(
   cors({
-    origin:  process.env.CLIENT_URL,
+    origin: env.clientUrl,
     credentials: true,
   })
 );

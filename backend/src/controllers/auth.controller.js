@@ -116,7 +116,6 @@ export const updateProfile = async (req, res) => {
     io.emit("profileUpdated", {
       _id: updatedUser._id,
       fullName: updatedUser.fullName,
-      email: updatedUser.email,
       profilePic: updatedUser.profilePic,
       updatedAt: updatedUser.updatedAt,
     });
