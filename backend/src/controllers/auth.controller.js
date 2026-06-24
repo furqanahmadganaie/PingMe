@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
 import cloudinary from "../lib/cloudinary.js";
+import { io } from "../lib/socket.js";
 
 export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;// fetch user datatfrom fronend 
@@ -98,18 +99,42 @@ export const updateProfile = async (req, res) => {
     }
 
     const uploadResponse = await cloudinary.uploader.upload(profilePic,{
-       folder:"profile_pictures"
+      folder: "pingme/profile_pictures",
+      resource_type: "image",
+      transformation: [
+        { width: 800, height: 800, crop: "limit" },
+        { quality: "auto", fetch_format: "auto" },
+      ],
     });
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePic: uploadResponse.secure_url },
       { new: true }
-    );
+    ).select("-password");
+
+    // Update the cached contact/profile data in every connected client.
+    io.emit("profileUpdated", {
+      _id: updatedUser._id,
+      fullName: updatedUser.fullName,
+      email: updatedUser.email,
+      profilePic: updatedUser.profilePic,
+      updatedAt: updatedUser.updatedAt,
+    });
 
     res.status(200).json(updatedUser);
   } catch (error) {
     console.log("error in update profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+
+    if (error?.http_code === 403) {
+      return res.status(503).json({
+        message:
+          "Cloudinary is blocking uploads for this account. Verify your Cloudinary email/account activation and check that the API key is enabled for this product environment.",
+      });
+    }
+
+    res.status(500).json({
+      message: error?.message || "Profile image upload failed",
+    });
   }
 };
 

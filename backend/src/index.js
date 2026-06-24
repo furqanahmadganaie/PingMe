@@ -8,24 +8,33 @@ import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 // import path from "path";
-import authRoutes from '../routes/auth.route.js';
-import messageRoutes from '../routes/message.route.js'
-import { connectDB } from '../lib/db.js';
-dotenv.config();
-const app=express();
+import authRoutes from './routes/auth.route.js';
+import messageRoutes from './routes/message.route.js'
+import { connectDB } from './lib/db.js';
+import { app,server} from "./lib/socket.js";
 
-const PORT = process.env.PORT;
+dotenv.config({ quiet: true });
+// const app=express();
+// reolace app with server 
+
+const PORT = process.env.PORT || 4000;
 // const __dirname = path.resolve();
+
+
+app.use(express.json({limit:"10mb"})); //middleware  to ectrach the daata 
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(cookieParser()); //allows to parese the cookie
+//CqCFjIbMLu0g9XdW
 app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
   })
 );
-app.use(express.json({limit:"10mb"})); //middleware  to ectrach the daata 
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-app.use(cookieParser()); //allows to parese the cookie
-//CqCFjIbMLu0g9XdW
+// app.use(express.json({limit:"10mb"})); //middleware  to ectrach the daata 
+// app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+// app.use(cookieParser()); //allows to parese the cookie
+// //CqCFjIbMLu0g9XdW
 
 
 
@@ -33,7 +42,24 @@ app.use(cookieParser()); //allows to parese the cookie
 app.use("/api/auth", authRoutes);
 app.use("/api/messages",messageRoutes);
 
-app.listen(PORT,()=> {
-     console.log(`server running on ${PORT}`)
-    connectDB();
-});
+connectDB()
+  .then(() => {
+    server.on("error", (error) => {
+      if (error.code === "EADDRINUSE") {
+        console.error(
+          `Port ${PORT} is already in use. Stop the existing backend process before starting another one.`
+        );
+        process.exit(1);
+      }
+
+      throw error;
+    });
+
+    server.listen(PORT, () => {
+      console.log(`server running on ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Failed to start server:", error.message);
+    process.exit(1);
+  });

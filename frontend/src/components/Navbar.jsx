@@ -1,55 +1,54 @@
 
-import { useAuthStore } from "../store/useAuthStore"
-import { MessageSquare, User, Settings, LogOut } from "lucide-react"
-import {Link} from 'react-router-dom';
+import { LogOut, MessageSquare, Settings, User } from "lucide-react";
+import { Link, NavLink } from "react-router-dom";
+import { useAuthStore } from "../store/useAuthStore";
+
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
-  return (
-    <header
-      className="bg-base-100 border-b border-base-300 fixed w-full top-0 z-40 
-    backdrop-blur-lg bg-base-100/80"
-    >
-      <div className="container mx-auto px-4 h-16">
-        <div className="flex items-center justify-between h-full">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-all">
-              <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-primary" />
-              </div>
-              <h1 className="text-lg font-bold">PingMe</h1>
-            </Link>
-          </div>
+  const navClass = ({ isActive }) =>
+    `btn btn-ghost btn-sm gap-2 rounded-xl ${
+      isActive ? "bg-primary/10 text-primary" : "text-base-content/65"
+    }`;
 
-          <div className="flex items-center gap-2">
-            <Link
-              to={"/settings"}
-              className={`
-              btn btn-sm gap-2 transition-colors
-              
-              `}
-            >
-              <Settings className="w-4 h-4" />
+  return (
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-base-content/10 bg-base-100/80 backdrop-blur-xl">
+      <div className="mx-auto h-16 max-w-7xl px-3 sm:px-6">
+        <div className="flex h-full items-center justify-between">
+          <Link to="/" className="group flex items-center gap-2.5">
+            <div className="grid size-9 place-items-center rounded-xl bg-primary text-primary-content shadow-lg shadow-primary/20 transition-transform group-hover:-rotate-6 group-hover:scale-105">
+              <MessageSquare className="size-5" />
+            </div>
+            <h1 className="text-lg font-black tracking-tight">
+              Ping<span className="text-primary">Me</span>
+            </h1>
+          </Link>
+
+          <nav className="flex items-center gap-0.5 sm:gap-1">
+            <NavLink to="/settings" className={navClass}>
+              <Settings className="size-4" />
               <span className="hidden sm:inline">Settings</span>
-            </Link>
+            </NavLink>
 
             {authUser && (
               <>
-                <Link to={"/profile"} className={`btn btn-sm gap-2`}>
-                  <User className="size-5" />
+                <NavLink to="/profile" className={navClass}>
+                  <User className="size-4" />
                   <span className="hidden sm:inline">Profile</span>
-                </Link>
-
-                <button className="flex gap-2 items-center" onClick={logout}>
-                  <LogOut className="size-5" />
+                </NavLink>
+                <button
+                  className="btn btn-ghost btn-sm gap-2 rounded-xl text-base-content/65 hover:bg-error/10 hover:text-error"
+                  onClick={logout}
+                >
+                  <LogOut className="size-4" />
                   <span className="hidden sm:inline">Logout</span>
                 </button>
               </>
             )}
-          </div>
+          </nav>
         </div>
       </div>
     </header>
   );
 };
 
-export default Navbar
+export default Navbar;

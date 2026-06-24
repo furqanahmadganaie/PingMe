@@ -1,6 +1,6 @@
 import { useChatStore } from "../store/useChatStore"
-import { useAuthStore } from "../store/useAuthStore";
-import { useEffect } from "react";
+import { useAuthStore} from "../store/useAuthStore";
+import { useEffect,useRef } from "react";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
@@ -16,6 +16,7 @@ const ChatContainer = () => {
     subscribeToMessages,
     unsubscribeFromMessages,
   } = useChatStore();
+  
    const { authUser } = useAuthStore();
    const messageEndRef = useRef(null);
 
@@ -79,8 +80,9 @@ const ChatContainer = () => {
                 <img
                   src={message.image}
                   alt="Attachment"
-                  className="sm:max-w-[200px] rounded-md mb-2"
+                  className=" rounded-md mb-2"
                 />
+                // sm:max-w-[200px]
               )}
               {message.text && <p>{message.text}</p>}
             </div>

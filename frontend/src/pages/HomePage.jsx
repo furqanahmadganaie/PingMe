@@ -1,24 +1,30 @@
+import { useEffect } from "react";
 import { useChatStore } from "../store/useChatStore";
-import  Sidebar from '../components/Sidebar';
-import ChatContainer from '../components/ChatContainer'
-import NoChatSelected from '../components/NoChatselected'
+import { useAuthStore } from "../store/useAuthStore";
+import Sidebar from "../components/SidebarStyled";
+import ChatContainer from "../components/ChatContainerStyled";
+import NoChatSelected from "../components/NoChatSelectedStyled";
 
 
 const Homepage = () => {
- const { selectedUser } = useChatStore();
+ const { selectedUser, subscribeToMessages, unsubscribeFromMessages } = useChatStore();
+ const { socket } = useAuthStore();
+
+ useEffect(() => {
+   if (!socket) return undefined;
+   subscribeToMessages();
+   return unsubscribeFromMessages;
+ }, [socket, subscribeToMessages, unsubscribeFromMessages]);
 
   return (
-    <div className="h-screen bg-base-200">
-      <div className="flex items-center justify-center pt-20 px-4">
-        <div className="bg-base-100 rounded-lg shadow-cl w-full max-w-6xl h-[calc(100vh-8rem)]">
-          <div className="flex h-full rounded-lg overflow-hidden">
-            <Sidebar/>
-
+    <main className="app-shell h-[100dvh] overflow-hidden px-0 pb-0 pt-16 sm:px-4 sm:pb-4 sm:pt-20">
+      <div className="glass-panel mx-auto h-full max-w-7xl overflow-hidden sm:rounded-[1.75rem]">
+        <div className="flex h-full overflow-hidden">
+            <Sidebar mobileHidden={Boolean(selectedUser)} />
             {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
-          </div>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
 
