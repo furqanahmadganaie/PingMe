@@ -11,6 +11,7 @@ import messageRoutes from './routes/message.route.js'
 import { connectDB } from './lib/db.js';
 import { app,server} from "./lib/socket.js";
 import { env } from "./config/env.js";
+import monitoringMiddleware from "./middleware/monitoring.Middleware.js";
 
 const PORT = env.port;
 
@@ -25,7 +26,8 @@ app.use(
     credentials: true,
   })
 );
-
+// Monitoring
+app.use(monitoringMiddleware);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages",messageRoutes);
