@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import { io } from "../lib/socket.js";
+import { measure } from "../utils/performance.js";
 
 // get all users without you 
 export const getUsersForSidebar = async (req, res) => {
@@ -82,8 +83,20 @@ export const sendMessage = async (req, res) => {
     if (image) {
 
       // Upload base64 image to cloudinary
+const uploadResponse =
+await measure(
 
-      const uploadResponse = await cloudinary.uploader.upload(image);
+    req,
+
+    "Cloudinary Upload",
+
+    async () => {
+
+        return await cloudinary.uploader.upload(image);
+
+    }
+
+);
       imageUrl = uploadResponse.secure_url;
     }
 
@@ -94,11 +107,34 @@ export const sendMessage = async (req, res) => {
       image: imageUrl,
     });
 
-    await newMessage.save();
+ await measure(
+    req,
+
+    "MongoDB Save",
+
+    async () => {
+
+        return await newMessage.save();
+
+    }
+);
     
     // sent msg to user  in realtime 
     // Every tab/device for this user joins a room named with their user id.
-    io.to(String(receiverId)).emit("newMessage", newMessage);
+await measure(
+
+    req,
+
+    "Socket Emit",
+
+    async () => {
+
+        io.to(String(receiverId))
+            .emit("newMessage", newMessage);
+
+    }
+
+);
 
     res.status(201).json(newMessage);
   } catch (error) {

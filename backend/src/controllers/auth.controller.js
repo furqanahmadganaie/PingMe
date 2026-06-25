@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
 import cloudinary from "../lib/cloudinary.js";
 import { io } from "../lib/socket.js";
+import { measure } from "../utils/performance.js";
 
 export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;// fetch user datatfrom 

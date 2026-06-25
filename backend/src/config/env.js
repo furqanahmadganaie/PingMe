@@ -17,4 +17,5 @@ export const env = {
   clientUrl: process.env.CLIENT_URL.trim().replace(/\/$/, ""),
   jwtSecret: process.env.JWT_SECRET.trim(),
   port: Number(process.env.PORT) || 4000,
+   nodeEnv: process.env.NODE_ENV || "development",
 };

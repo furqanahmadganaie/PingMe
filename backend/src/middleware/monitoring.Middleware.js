@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { env } from "../config/env.js";
+import  os from "os" ;
 
 const monitoringMiddleware = (req, res, next) => {
 
@@ -46,9 +47,7 @@ const monitoringMiddleware = (req, res, next) => {
             env.nodeEnv;
 
         // Hostname
-        const serverName =
-            process.env.HOSTNAME ||
-            "Localhost";
+        const serverName = os.hostname();
 
         console.log({
             timestamp: new Date().toISOString(),
