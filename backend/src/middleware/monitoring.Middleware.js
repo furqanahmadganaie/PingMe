@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { env } from "../config/env.js";
-import  os from "os" ;
+import os from "os";
+import { updateMetrics ,getMetrics} from "../monitoring/metricsManager.js";
 
 const monitoringMiddleware = (req, res, next) => {
 
@@ -22,6 +23,16 @@ const monitoringMiddleware = (req, res, next) => {
 
         const duration =
             Number(end - start) / 1_000_000;
+
+       const route =
+    req.baseUrl +
+    (req.route?.path || req.path);
+
+updateMetrics(
+    `${req.method} ${route}`,
+    res.statusCode,
+    duration
+);
 
         // Response Size
         const responseSize =
@@ -76,6 +87,8 @@ const monitoringMiddleware = (req, res, next) => {
 
             serverName
         });
+        console.log("\n========== METRICS ==========");
+    console.table(getMetrics());
 
     });
 
