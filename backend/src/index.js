@@ -12,6 +12,9 @@ import { connectDB } from './lib/db.js';
 import { app,server} from "./lib/socket.js";
 import { env } from "./config/env.js";
 import monitoringMiddleware from "./middleware/monitoring.Middleware.js";
+import { getApplicationMetrics } from "./monitoring/applicationMetrics.js";
+import applicationMetricsRoutes from "./routes/applicationMetrics.route.js";
+import metricsRoutes from "./routes/metrics.route.js";
 
 const PORT = env.port;
 
@@ -31,6 +34,9 @@ app.use(monitoringMiddleware);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages",messageRoutes);
+app.use("/application-metrics", applicationMetricsRoutes);
+
+app.use("/metrics", metricsRoutes);
 
 connectDB()
   .then(() => {
@@ -47,7 +53,17 @@ connectDB()
 
     server.listen(PORT, () => {
       console.log(`server running on ${PORT}`);
-    });
+
+  // console.log(getApplicationMetrics());  now we see those matrics on http://localhost:4000/application-metrics in json form 
+  //http://localhost:4000/metrics and on this 
+
+
+  // setInterval(() => {
+  //   console.clear(); // Optional
+  //   console.log(getApplicationMetrics());
+  // }, 3000);
+    });   //this will print the application metrics after every 3 second so it no good approch 
+    
   })
   .catch((error) => {
     console.error("Failed to start server:", error.message);

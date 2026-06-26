@@ -1,98 +1,103 @@
 import crypto from "crypto";
-import { env } from "../config/env.js";
 import os from "os";
-import { updateMetrics ,getMetrics} from "../monitoring/metricsManager.js";
+
+import { env } from "../config/env.js";
+import { updateMetrics, getMetrics } from "../monitoring/metricsManager.js";
+import { incrementRequestCounter } from "../monitoring/applicationMetrics.js";
 
 const monitoringMiddleware = (req, res, next) => {
+  const start = process.hrtime.bigint();
 
-    const start = process.hrtime.bigint();
+  // Unique request ID
+  req.requestId = crypto.randomUUID();
 
-    // Unique request id
-    const requestId = crypto.randomUUID();
+  // Request Size
+  const requestSize = req.headers["content-length"] || 0;
 
-    // Attach request id to request
-    req.requestId = requestId;
+  res.on("finish", () => {
+    const end = process.hrtime.bigint();
 
-    // Request Size
-    const requestSize =
-        req.headers["content-length"] || 0;
+    const duration = Number(end - start) / 1_000_000;
 
-    res.on("finish", () => {
+    // Better route name
+   const route =
+  req.baseUrl + (req.route?.path || req.path);
+    
 
-        const end = process.hrtime.bigint();
+    // Routes to ignore
+const ignoredRoutes = [
+  "/metrics",
+  "/application-metrics",
+  "/favicon.ico",
+];
 
-        const duration =
-            Number(end - start) / 1_000_000;
+// Ignore monitoring and browser-generated requests
+const isMonitoringRoute =
+  ignoredRoutes.includes(route) ||
+  route.startsWith("/.well-known/");
 
-       const route =
-    req.baseUrl +
-    (req.route?.path || req.path);
+    if (!isMonitoringRoute) {
+      updateMetrics(
+        `${req.method} ${route}`,
+        res.statusCode,
+        duration
+      );
 
-updateMetrics(
-    `${req.method} ${route}`,
-    res.statusCode,
-    duration
-);
+      incrementRequestCounter();
 
-        // Response Size
-        const responseSize =
-            res.getHeader("content-length") || 0;
+      if (env.nodeEnv === "development") {
+        console.log("\n========== API METRICS ==========");
+        console.table(getMetrics());
+      }
+    }
 
-        // If authentication middleware sets req.user
-        const userId =
-            req.user?._id ||
-            req.user?.id ||
-            "Anonymous";
+    const responseSize =
+      res.getHeader("content-length") || 0;
 
-        // Client IP
-        const ip =
-            req.headers["x-forwarded-for"] ||
-            req.socket.remoteAddress;
+    const userId =
+      req.user?._id ||
+      req.user?.id ||
+      "Anonymous";
 
-        // Browser / Client
-        const userAgent =
-            req.headers["user-agent"];
+    const ip =
+      req.headers["x-forwarded-for"] ||
+      req.socket.remoteAddress;
 
-        // Environment
-        const environment =
-            env.nodeEnv;
+    const userAgent =
+      req.headers["user-agent"];
 
-        // Hostname
-        const serverName = os.hostname();
+    const serverName = os.hostname();
 
-        console.log({
-            timestamp: new Date().toISOString(),
+    console.log({
+      timestamp: new Date().toISOString(),
 
-            requestId,
+      requestId: req.requestId,
 
-            method: req.method,
+      method: req.method,
 
-            route: req.originalUrl,
+      route,
 
-            status: res.statusCode,
+      status: res.statusCode,
 
-            duration: `${duration.toFixed(2)} ms`,
+      duration: `${duration.toFixed(2)} ms`,
 
-            ip,
+      ip,
 
-            userId,
+      userId,
 
-            requestSize: `${requestSize} Bytes`,
+      requestSize: `${requestSize} Bytes`,
 
-            responseSize: `${responseSize} Bytes`,
+      responseSize: `${responseSize} Bytes`,
 
-            userAgent,
+      userAgent,
 
-            environment,
+      environment: env.nodeEnv,
 
-            serverName
-        });
-        console.log("\n========== METRICS ==========");
-    console.table(getMetrics());
-
+      serverName,
     });
+  });
 
-    next();
+  next();
 };
 
 export default monitoringMiddleware;
