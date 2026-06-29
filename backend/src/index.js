@@ -15,6 +15,7 @@ import monitoringMiddleware from "./middleware/monitoring.Middleware.js";
 import { getApplicationMetrics } from "./monitoring/applicationMetrics.js";
 import applicationMetricsRoutes from "./routes/applicationMetrics.route.js";
 import metricsRoutes from "./routes/metrics.route.js";
+import prometheusRoutes from "./routes/prometheus.route.js";
 
 const PORT = env.port;
 
@@ -35,8 +36,8 @@ app.use(monitoringMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api/messages",messageRoutes);
 app.use("/application-metrics", applicationMetricsRoutes);
-
 app.use("/metrics", metricsRoutes);
+app.use("/prometheus", prometheusRoutes);
 
 connectDB()
   .then(() => {

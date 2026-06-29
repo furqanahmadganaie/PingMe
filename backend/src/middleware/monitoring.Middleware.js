@@ -4,6 +4,7 @@ import os from "os";
 import { env } from "../config/env.js";
 import { updateMetrics, getMetrics } from "../monitoring/metricsManager.js";
 import { incrementRequestCounter } from "../monitoring/applicationMetrics.js";
+import { httpErrorsTotal,httpRequestDuration,httpRequestsTotal } from "../monitoring/prometheus.js";
 
 const monitoringMiddleware = (req, res, next) => {
   const start = process.hrtime.bigint();
@@ -36,6 +37,7 @@ const isMonitoringRoute =
   ignoredRoutes.includes(route) ||
   route.startsWith("/.well-known/");
 
+//custom monitoring 
     if (!isMonitoringRoute) {
       updateMetrics(
         `${req.method} ${route}`,
@@ -44,6 +46,34 @@ const isMonitoringRoute =
       );
 
       incrementRequestCounter();
+
+      // prometheus metrics 
+       // Total HTTP Requests
+      httpRequestsTotal.inc({
+        method: req.method,
+        route,
+        status: res.statusCode,
+      });
+
+      // Total HTTP Errors
+      if (res.statusCode >= 400) {
+        httpErrorsTotal.inc({
+          method: req.method,
+          route,
+          status: res.statusCode,
+        });
+      }
+
+      // HTTP Response Time Histogram
+      httpRequestDuration.observe(
+        {
+          method: req.method,
+          route,
+          status: res.statusCode,
+        },
+        duration / 1000 // Histogram expects seconds
+      );
+      
 
       if (env.nodeEnv === "development") {
         console.log("\n========== API METRICS ==========");
